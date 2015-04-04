@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-# Abhabongse Janthong <underneaththeunderneath@gmail.com>
-# Tests the file wrapper utility.
+#
+# Author: Abhabongse Janthong <underneaththeunderneath@gmail.com>
+# More info at https://github.com/abhabongse/python3-filewraps
+#
 
 import sys, itertools
-from fileutil import filewraps
+from python3_filewraps import filewraps
 
 #
 # Example 1
