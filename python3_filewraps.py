@@ -96,7 +96,8 @@ def filewraps(original_func=None, *, filearg=0, auto_close=True, **open_kwargs):
         return decorator
     else:
         if isinstance(original_func, FileWrappedFunction):
-            func = original_func
+            raise NotImplementedError("this decorator is not composable")
+            # func = original_func
         else:
             func = FileWrappedFunction(original_func)
             func = functools.update_wrapper(func, original_func)

@@ -125,13 +125,17 @@ No. The simple reason is that the language specification for functions in `pytho
 
 Another reason is that I want to support the advancement towards adopting `python3`. Although the library could be easily modified to support `python2`, I will never do it myself in a thousand years. But, of course, you are welcome to do it yourself and share it to the world. It's FOSS after all.
 
-#### Is the decorator `@filewraps` composable?
+#### Are `@filewraps` decorators composable?
 
 Not yet. I will add this feature in not-so-near future. Whenever I need this feature myself, I will add it. But no, definitely not soon.
 
-#### Why is it not composable?
+The reason why they are not composable is that the **signature** of the input function to `filewraps` is **not preserved** in the output, while `filewraps` at the same time needs to inspect the signature of the input function. So a function cannot be wrapped with `filewraps` more than once.
 
-It is because the signature of the input function to `filewraps` is not preserved in the output, while `filewraps` at the same time needs to inspect the signature of the input function. So a function cannot be wrapped with `filewraps` more than once.
+There are two ways to fix this:
+
+1.  Implement the missing part in the code by yourself. You will be suprised to see that the code already allows extra file arguments to be added.
+
+2.  Use PyPI package [`decorator`](https://pypi.python.org/pypi/decorator) so that functions returned by `@filewraps` decorator preserve their signature. I haven't test it yet but it should work.
 
 #### I have a suggestion for improvement and a pull req&mdash; ####
 
