@@ -32,11 +32,10 @@ class FileWrappedFunction(object):
         # CASE 1: the given variable is positional.
         if self._filearg in self._spec.args:
             self._pos = self._spec.args.index(self._filearg)
-            self._func_call = self._func_by_position
 
         # CASE 2: the given variable is keyword-only.
         elif self._filearg in self._spec.kwonlyargs:
-            self._func_call = self._func_by_keyword
+            pass  # do nothing
 
         # OTHERWISE: the given variable does not exist.
         else:
@@ -44,28 +43,12 @@ class FileWrappedFunction(object):
                             .format(name=str(self._filearg), func=original_func.__name__))
 
     def __call__(self, *args, **kwargs):
-        self._func_call(args, kwargs)
-
-    def _func_by_position(self, args, kwargs):
-        """
-        Callable function when the specified filearg is positional.
-        """
         ba = self._sig.bind(*args, **kwargs)
         args, kwargs = list(ba.args), ba.kwargs
-        if self._filearg in kwargs:
-            return self._wrapped_func(args, kwargs, kwargs, self._filearg)
-        elif self._pos < len(args):
+
+        if hasattr(self, '_pos') and self._pos < len(args):
             return self._wrapped_func(args, kwargs, args, self._pos)
-        else:
-            return self._original_func(*args, **kwargs)
-
-    def _func_by_keyword(self, args, kwargs):
-        """
-        Callable function when the specified filearg is keyword-only.
-        """
-        ba = self._sig.bind(*args, **kwargs)
-        args, kwargs = list(ba.args), ba.kwargs
-        if self._filearg in kwargs:
+        elif self._filearg in kwargs:
             return self._wrapped_func(args, kwargs, kwargs, self._filearg)
         else:
             return self._original_func(*args, **kwargs)
@@ -102,7 +85,9 @@ def filewraps(original_func=None, *, filearg=0, auto_close=True, **open_kwargs):
             return filewraps(original_func, filearg=filearg, auto_close=auto_close,
                              **open_kwargs)
         return decorator
-    else:
+    elif not hasattr(original_func, '_original_func'):
         func = FileWrappedFunction(original_func, filearg, auto_close, open_kwargs)
         func = functools.update_wrapper(func, original_func)
         return func
+    else:
+        raise NotImplementedError("Composable @filewraps decorator not yet implemented.")
