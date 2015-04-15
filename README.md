@@ -14,13 +14,13 @@ Few examples of how to use `@filewraps` could be seen at [example.py](./example.
 
 The signature of the decorator `@filewraps` is
 
-**`filewraps(input_func=None, *, filearg=0, auto_close=True, **open_kwargs)`**
+**`filewraps(original_func=None, *, filearg=0, auto_close=True, **open_kwargs)`**
 
 For more details about each argument, check out subtopics below.
 
 ### 1. Decorators
 
-The first­ and the only positional argument `input_func` is a function you wish to add the capability of accepting file names as arguments in addition to file-like objects. The function `input_func` will be wrapped and returned as the output of `filewraps`.
+The first­ and the only positional argument `original_func` is a function you wish to add the capability of accepting file names as arguments in addition to file-like objects. The function `original_func` will be wrapped and returned as the output of `filewraps`.
 
 The following two examples are equivalent: they all return the first line of a given file.
 
@@ -38,13 +38,13 @@ def read_first_line(f):
 
 ### 2. Specifying file argument
 
-The keyword-only argument `filearg` specifies which argument of `input_func` should be watched for file names in addition to file-like objects. It can either be
+The keyword-only argument `filearg` specifies which argument of `original_func` should be watched for file names in addition to file-like objects. It can either be
 
-- an integer specifying the 0-index of the position argument of `input_func`, or
+- an integer specifying the 0-index of the position argument of `original_func`, or
 
-- a string representing the argument name of the `input_func`.
+- a string representing the argument name of the `original_func`.
 
-The default value of `filearg` is `0` which means that the *first* argument of `input_func` is expected to receive file-like object by default (as in the above two examples).
+The default value of `filearg` is `0` which means that the *first* argument of `original_func` is expected to receive file-like object by default (as in the above two examples).
 
 Here are three example that are semantically equivalent: they all return the first `l` lines of a given file:
 
@@ -68,7 +68,7 @@ def read_first_l_lines(l, f):
 
 ### 3. Auto closing files
 
-Another keyword-only argument `auto_close` is a boolean indicating whether a file argument should be closed automatically once the execution of `input_func` is done. This option has an effect only when the file argument is initially specified as file name strings (not as file-like objects).
+Another keyword-only argument `auto_close` is a boolean indicating whether a file argument should be closed automatically once the execution of `original_func` is done. This option has an effect only when the file argument is initially specified as file name strings (not as file-like objects).
 
 In other words, the file-like object will **never** be closed regardless of the boolean value of `auto_close` if it is initially specified as file-like object itself. Here is some demonstration:
 
