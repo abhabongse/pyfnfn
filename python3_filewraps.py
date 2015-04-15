@@ -10,50 +10,59 @@ class FileWrappedFunction(object):
     A callable wrapper for a function that should accept filename as arguments
     in addition to file-like objects.
     """
-    def __init__(self, original_func, filearg=0, auto_close=True, open_kwargs=None):
-
+    def __init__(self, original_func):
         import inspect
-
         self._original_func = original_func
         self._sig = inspect.signature(original_func)
         self._spec = inspect.getfullargspec(original_func)
-        self._auto_close = auto_close
-        self._open_kwargs = open_kwargs or {}
+        self._fileargs = []  # list of (name, auto_close, open_kwargs)
 
-        # Convert the variable name to string if integer is given.
+    def add_filearg(self, filearg=0, auto_close=True, open_kwargs=None):
+        """
+        Append a new file argument to the callable class object.
+        This function is called once per one file argument binding.
+        """
         try:
-            self._filearg = self._spec.args[filearg]
+            filearg = self._spec.args[filearg]
         except TypeError:
-            self._filearg = filearg
+            pass
         except IndexError as e:
             e.args = ("argument list index out of range",)
             raise e
 
         # CASE 1: the given variable is positional.
-        if self._filearg in self._spec.args:
-            self._pos = self._spec.args.index(self._filearg)
+        if filearg in self._spec.args:
+            pos = self._spec.args.index(filearg)
 
         # CASE 2: the given variable is keyword-only.
-        elif self._filearg in self._spec.kwonlyargs:
-            pass  # do nothing
+        elif filearg in self._spec.kwonlyargs:
+            pos = None
 
         # OTHERWISE: the given variable does not exist.
         else:
             raise NameError("{name} is not a valid argument for the function {func}"
                             .format(name=str(self._filearg), func=original_func.__name__))
 
+        self._fileargs.append((filearg, pos, auto_close, open_kwargs or {}))
+
     def __call__(self, *args, **kwargs):
+        """
+        This method will be called when the class object is called as callable.
+        """
+        # These two lines are doubtedly necessary; examples.py fail if these lines are omitted.
         ba = self._sig.bind(*args, **kwargs)
         args, kwargs = list(ba.args), ba.kwargs
 
-        if hasattr(self, '_pos') and self._pos < len(args):
-            return self._wrapped_func(args, kwargs, args, self._pos)
-        elif self._filearg in kwargs:
-            return self._wrapped_func(args, kwargs, kwargs, self._filearg)
+        filearg, pos, auto_close, open_kwargs = self._fileargs[0]
+
+        if pos is not None and pos < len(args):
+            return self._wrapped_func(args, kwargs, args, pos, auto_close, open_kwargs)
+        elif filearg in kwargs:
+            return self._wrapped_func(args, kwargs, kwargs, filearg, auto_close, open_kwargs)
         else:
             return self._original_func(*args, **kwargs)
 
-    def _wrapped_func(self, args, kwargs, store, key):
+    def _wrapped_func(self, args, kwargs, store, key, auto_close, open_kwargs):
         """
         Called by _func_by_position or _func_by_keyword if the file argument
         is given and file may need to be opened.
@@ -63,12 +72,12 @@ class FileWrappedFunction(object):
         file = store[key]
         if isinstance(file, io.IOBase):
             return self._original_func(*args, **kwargs)
-        elif self._auto_close:
-            with open(file, **self._open_kwargs) as fileobj:
+        elif auto_close:
+            with open(file, **open_kwargs) as fileobj:
                 store[key] = fileobj
                 return self._original_func(*args, **kwargs)
         else:
-            fileobj = open(file, **self._open_kwargs)
+            fileobj = open(file, **open_kwargs)
             store[key] = fileobj
             return self._original_func(*args, **kwargs)
 
@@ -85,9 +94,11 @@ def filewraps(original_func=None, *, filearg=0, auto_close=True, **open_kwargs):
             return filewraps(original_func, filearg=filearg, auto_close=auto_close,
                              **open_kwargs)
         return decorator
-    elif not hasattr(original_func, '_original_func'):
-        func = FileWrappedFunction(original_func, filearg, auto_close, open_kwargs)
-        func = functools.update_wrapper(func, original_func)
-        return func
     else:
-        raise NotImplementedError("Composable @filewraps decorator not yet implemented.")
+        if isinstance(original_func, FileWrappedFunction):
+            func = original_func
+        else:
+            func = FileWrappedFunction(original_func)
+            func = functools.update_wrapper(func, original_func)
+        func.add_filearg(filearg, auto_close, open_kwargs)
+        return func
