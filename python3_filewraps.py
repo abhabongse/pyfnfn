@@ -17,8 +17,8 @@ class FileWrappedFunction(object):
 
     def add_filearg(self, filearg=0, auto_close=True, open_kwargs=None):
         """
-        Append a new file argument to the callable class object.
-        This function is called once per one file argument binding.
+        Append a new file argument to the callable class object. This function
+        is called once per one file argument binding.
         """
         try:
             filearg = self._spec.args[filearg]
@@ -38,29 +38,38 @@ class FileWrappedFunction(object):
 
         # OTHERWISE: the given variable does not exist.
         else:
-            raise NameError("{name} is not a valid argument for the function {func}"
-                            .format(name=str(self._filearg), func=original_func.__name__))
+            raise NameError(
+                "{name} is not a valid argument for the function {func}"
+                .format(name=str(self._filearg),
+                        func=self._original_func.__name__))
 
         self._fileargs.append((filearg, pos, auto_close, open_kwargs or {}))
 
     def __call__(self, *args, **kwargs):
         """
-        This method will be called when the class object is called as callable.
+        This method will be called when the wrapper function (which is this
+        very object 'self') is invoked.
         """
-        args = list(args)  # convert from (non-mutable) tuple to (mutable) list
+        args = list(args)  # convert from non-mutable tuple to mutable list
         filearg, pos, auto_close, open_kwargs = self._fileargs[0]
 
         if pos is not None and pos < len(args):
-            return self._wrapped_func(args, kwargs, args, pos, auto_close, open_kwargs)
+            return self._wrapped_func(args, kwargs, args, pos,
+                                      auto_close, open_kwargs)
         elif filearg in kwargs:
-            return self._wrapped_func(args, kwargs, kwargs, filearg, auto_close, open_kwargs)
+            return self._wrapped_func(args, kwargs, kwargs, filearg,
+                                      auto_close, open_kwargs)
         else:
             return self._original_func(*args, **kwargs)
 
-    def _wrapped_func(self, args, kwargs, store, key, auto_close, open_kwargs):
+    def _wrapped_func(self, args, kwargs, store, key,
+                      auto_close, open_kwargs):
         """
-        Called by _func_by_position or _func_by_keyword if the file argument
-        is given and file may need to be opened.
+        This method opens the file if necessary before the actual function is
+        invoked. The file argument is identified by store[key] where store
+        could be a list of positional arguments and key is an index, or the
+        store could be a dictionary of keyword-only arguments and key is the
+        name of the argument.
         """
         import io
 
@@ -77,17 +86,17 @@ class FileWrappedFunction(object):
             return self._original_func(*args, **kwargs)
 
 
-def filewraps(original_func=None, *, filearg=0, auto_close=True, **open_kwargs):
+def filewraps(original_func=None, filearg=0, auto_close=True, **open_kwargs):
     """
-    Function wrapper that modifies the file argument to accept the filename
+    A function wrapper that modifies the file argument to accept the filename
     string or the file descriptor integer in addition to file-like object.
     """
     import functools
 
     if original_func is None:
         def decorator(original_func):
-            return filewraps(original_func, filearg=filearg, auto_close=auto_close,
-                             **open_kwargs)
+            return filewraps(original_func, filearg=filearg,
+                             auto_close=auto_close, **open_kwargs)
         return decorator
     else:
         if isinstance(original_func, FileWrappedFunction):
