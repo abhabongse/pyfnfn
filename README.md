@@ -38,6 +38,13 @@ def read_first_line(f):
   return f.readline()
 ```
 
+Here are some valid examples of how to call these functions we just defined above.
+
+```python
+read_first_line(sys.stdin)  # reads a line from standard input
+read_first_line('input.txt')  # reads the first line of the file 'input.txt'
+```
+
 ### 2. Specifying file argument
 
 The second argument `filearg` specifies which argument of `original_func` should be watched for file names in addition to file-like objects. It can either be
@@ -88,11 +95,19 @@ So how does setting `auto_close` to `False` come in handy? Consider the followin
 
 ```python
 @filewraps(auto_close=False)
-def read_each_integer(f):
+def read_integers(f):
   for line in f:
     for token in line.split():
       yield int(token)  # creates a generator and return each integer one by one
   f.close()  # at the end of iteration, manually close the file
+
+# Generator function calling example
+total = 0
+for num in read_integers('input.txt'):
+  total += num
+
+# Another generator function calling example
+largest_integer = max(read_integers('input.txt'))
 ```
 
 ### 4. Optional arguments of `open()`
@@ -102,7 +117,7 @@ The last keyword variable `open_kwargs` is a dictionary of keyword arguments tha
 ```python
 @filewraps(filearg='f', mode='w')
 def write_integer(num, f):
-  print(num, file=f)
+  print(num, file=f)  # python3 print() built-in function
 ```
 
 ## Frequently asked questions
