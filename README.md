@@ -1,28 +1,30 @@
-# python3-filewraps
+# python-filewraps
 
-`python3-filewraps` is a small `python3` decorator snippet which extends any `python3` functions to accept _file name_ as arguments in addition to _file-like objects_. It was originally written for personal day-to-day usage, and it is released under [MIT License](LICENSE).
+`python-filewraps` is a small `python` decorator snippet which extends any `python` functions to accept **file names** as arguments in addition to **file-like objects**. It was originally written for personal day-to-day usage and it works on both `python2` as well as `python3` (only tested on `python2.7` and `python3.4`). It is released under [MIT License](LICENSE).
 
 
 ## Getting started
 
-First, copy `python3_filewraps.py` file to any location in your project where it could be imported. From within your python source file, simply import `filewraps` from the `python3_filewraps` module and apply it as the decorator `@filewraps` to any function definition you write.
+First, copy `filewraps.py` file to any location in your project where it could be imported. From within your python source file, simply import `filewraps` from the `filewraps` module and apply it as the decorator `@filewraps` to any function definition you write.
 
-Few examples of how to use `@filewraps` could be seen at [example.py](./example.py). For the actual documentation, see below.
+You may see (outdated) examples of how to user `filewraps` at [example2.py](./example2.py) for `python2` and at [example3.py](./example3.py) for `python3`. For the actual documentation, see the next section.
 
 
 ## Documentation
 
-The signature of the decorator `@filewraps` is
+The signature of the decorator `filewraps` is
 
-**`filewraps(original_func=None, *, filearg=0, auto_close=True, **open_kwargs)`**
+```python
+def filewraps(original_func=None, filearg=0, auto_close=True, **open_kwargs):
+```
 
 For more details about each argument, check out subtopics below.
 
 ### 1. Decorators
 
-The first­ and the only positional argument `original_func` is a function you wish to add the capability of accepting file names as arguments in addition to file-like objects. The function `original_func` will be wrapped and returned as the output of `filewraps`.
+The first argument `original_func` is a function you wish to add the capability of accepting file names as arguments in addition to file-like objects, without modifying the original code. The function `original_func` will be wrapped under a new callable object that will be returned as the output of `filewraps`.
 
-The following two examples are equivalent: they all return the first line of a given file.
+The following two examples are equivalent: they both return the first line of a given file. Note that the latter examples shows how `filewraps` is used as a decorator to a function definition.
 
 ```python
 def read_first_line(f):
@@ -38,15 +40,15 @@ def read_first_line(f):
 
 ### 2. Specifying file argument
 
-The keyword-only argument `filearg` specifies which argument of `original_func` should be watched for file names in addition to file-like objects. It can either be
+The second argument `filearg` specifies which argument of `original_func` should be watched for file names in addition to file-like objects. It can either be
 
-- an integer specifying the 0-index of the position argument of `original_func`, or
+- an integer, possibly negative, specifying the 0-index positional argument of `original_func`, or
 
 - a string representing the argument name of the `original_func`.
 
-The default value of `filearg` is `0` which means that the *first* argument of `original_func` is expected to receive file-like object by default (as in the above two examples).
+The _default value_ of `filearg` is `0` which means that the _first_ argument of `original_func` is expected to receive file-like object by default (as in the above two examples).
 
-Here are three example that are semantically equivalent: they all return the first `l` lines of a given file:
+Here are three example that are semantically equivalent: they all return the first `l` lines of a given file.
 
 ```python
 @filewraps(filearg=1)
@@ -55,7 +57,7 @@ def read_first_l_lines(l, f):
 ```
 
 ```python
-@filewraps(filearg=-1)  # Yes, negative index also allowed.
+@filewraps(filearg=-1)
 def read_first_l_lines(l, f):
   return f.readlines()[:l]
 ```
@@ -68,22 +70,18 @@ def read_first_l_lines(l, f):
 
 ### 3. Auto closing files
 
-Another keyword-only argument `auto_close` is a boolean indicating whether a file argument should be closed automatically once the execution of `original_func` is done. This option has an effect only when the file argument is initially specified as file name strings (not as file-like objects).
+Another argument called `auto_close` is a boolean indicating whether a file specified in the file argument should be closed automatically after the execution of `original_func` has ended. This option only applies to cases when the file argument is provided as a file name by the caller, which causes the file to be opened while the function is called. In other words, if the caller provided a file-like object to the function, this option will be ignored, and the file-like object will **never be closed automatically**.
 
-In other words, the file-like object will **never** be closed regardless of the boolean value of `auto_close` if it is initially specified as file-like object itself. Here is some demonstration:
+Here is how files are closed automatically by default when the file argument is provided as a file name. `False` and `True` are printed respectively.
 
 ```python
 @filewraps
 def return_file_object(f):
-  return f  # in reality, you should never do this
+  print(f.closed)
+  return f  # In reality, you should never do this.
 
-f1 = do_nothing('input.txt')
-f1.closed  # return True
-
-with open('input.txt') as fobj:
-  f2 = do_nothing('input.txt')
-  f2.closed  # return False
-f2.closed # return True
+f = return_file_object('input.txt')
+print(f.closed)
 ```
 
 So how does setting `auto_close` to `False` come in handy? Consider the following example: if your function is going to be a generator, you need to set `auto_close` to `False` to prevent premature file closing.
@@ -119,11 +117,17 @@ def read_first_line(f=sys.stdin):
   return f.readline()
 ```
 
+#### Does this code work with keyword-only arguments in `python3`?
+
+Of course. This project was initially aimed at `python3` only, so the support for keyword-only arguments is carefully considered.
+
 #### Does this decorator snippet work with `python2` as well?
 
-No. The simple reason is that the language specification for functions in `python2` and `python3` are different: `python2` does not accept keyword-only arguments while `python3` does. For the argument `filearg` to support keyword-only arguments in `python3`, compatibility with `python2` has to be dropped.
+<del>No. The simple reason is that the language specification for functions in `python2` and `python3` are different: `python2` does not accept keyword-only arguments while `python3` does. For the argument `filearg` to support keyword-only arguments in `python3`, compatibility with `python2` has to be dropped</del>.
 
-Another reason is that I want to support the advancement towards adopting `python3`. Although the library could be easily modified to support `python2`, I will never do it myself in a thousand years. But, of course, you are welcome to do it yourself and share it to the world. It's FOSS after all.
+<del>Another reason is that I want to support the advancement towards adopting `python3`. Although the library could be easily modified to support `python2`, I will never do it myself in a thousand years. But, of course, you are welcome to do it yourself and share it to the world. It's FOSS after all</del>.
+
+Yes.
 
 #### Are `@filewraps` decorators composable?
 
