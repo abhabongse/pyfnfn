@@ -12,8 +12,15 @@ class FileWrappedFunction(object):
     def __init__(self, original_func):
         import inspect
         self._original_func = original_func
-        self._spec = inspect.getfullargspec(original_func)
-        self._fileargs = []  # list of (name, auto_close, open_kwargs)
+        self._fileargs = []  # List of tuples consisting of (argument name,
+                             # argument index, auto_close, and open_kwargs).
+        try:
+            _spec = inspect.getfullargspec(original_func)
+            self._args = _spec.args
+            self._kwargs = _spec.kwonlyargs
+        except AttributeError:
+            self._args = inspect.getargspec(original_func).args
+            self._kwargs = []
 
     def add_filearg(self, filearg=0, auto_close=True, open_kwargs=None):
         """
@@ -21,7 +28,7 @@ class FileWrappedFunction(object):
         is called once per one file argument binding.
         """
         try:
-            filearg = self._spec.args[filearg]
+            filearg = self._args[filearg]
         except TypeError:
             pass
         except IndexError as e:
@@ -29,19 +36,18 @@ class FileWrappedFunction(object):
             raise e
 
         # CASE 1: the given variable is positional.
-        if filearg in self._spec.args:
-            pos = self._spec.args.index(filearg)
+        if filearg in self._args:
+            pos = self._args.index(filearg)
 
         # CASE 2: the given variable is keyword-only.
-        elif filearg in self._spec.kwonlyargs:
+        elif filearg in self._kwargs:
             pos = None
 
         # OTHERWISE: the given variable does not exist.
         else:
             raise NameError(
                 "{name} is not a valid argument for the function {func}"
-                .format(name=str(self._filearg),
-                        func=self._original_func.__name__))
+                .format(name=str(filearg), func=self._original_func.__name__))
 
         self._fileargs.append((filearg, pos, auto_close, open_kwargs or {}))
 

@@ -6,7 +6,7 @@
 
 import sys
 import itertools
-from python3_filewraps import filewraps
+from filewraps import filewraps
 
 #
 # Example 1
