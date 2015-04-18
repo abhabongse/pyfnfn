@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #
 # Author: Abhabongse Janthong <underneaththeunderneath@gmail.com>
 # More info at https://github.com/abhabongse/python3-filewraps
@@ -13,7 +12,6 @@ class FileWrappedFunction(object):
     def __init__(self, original_func):
         import inspect
         self._original_func = original_func
-        self._sig = inspect.signature(original_func)
         self._spec = inspect.getfullargspec(original_func)
         self._fileargs = []  # list of (name, auto_close, open_kwargs)
 
@@ -49,10 +47,7 @@ class FileWrappedFunction(object):
         """
         This method will be called when the class object is called as callable.
         """
-        # These two lines are doubtedly necessary; examples.py fail if these lines are omitted.
-        ba = self._sig.bind(*args, **kwargs)
-        args, kwargs = list(ba.args), ba.kwargs
-
+        args = list(args)  # convert from (non-mutable) tuple to (mutable) list
         filearg, pos, auto_close, open_kwargs = self._fileargs[0]
 
         if pos is not None and pos < len(args):
