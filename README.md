@@ -144,17 +144,19 @@ Of course. This project was initially aimed at `python3` only, so the support fo
 
 Yes.
 
-#### Are `@filewraps` decorators composable?
+#### Are `@filewraps` decorators compositable?
 
-Not yet. I will add this feature in not-so-near future. Whenever I need this feature myself, I will add it. But no, definitely not soon.
+<del>Not yet. I will add this feature in not-so-near future. Whenever I need this feature myself, I will add it. But no, definitely not soon.</del>
 
-The reason why they are not composable is that the **signature** of the input function to `filewraps` is **not preserved** in the output, while `filewraps` at the same time needs to inspect the signature of the input function. So a function cannot be wrapped with `filewraps` more than once.
+<del>The reason why they are not composable is that the **signature** of the input function to `filewraps` is **not preserved** in the output, while `filewraps` at the same time needs to inspect the signature of the input function. So a function cannot be wrapped with `filewraps` more than once.</del>
 
-There are two ways to fix this:
+<del>There are two ways to fix this:</del>
 
-1.  Implement the missing part in the code by yourself. You will be suprised to see that the code already allows extra file arguments to be added.
+1.  <del>Implement the missing part in the code by yourself. You will be suprised to see that the code already allows extra file arguments to be added.</del>
 
-2.  Use PyPI package [`decorator`](https://pypi.python.org/pypi/decorator) so that functions returned by `@filewraps` decorator preserve their signature. I haven't test it yet but it should work.
+2.  <del>Use PyPI package [`decorator`](https://pypi.python.org/pypi/decorator) so that functions returned by `@filewraps` decorator preserve their signature. I haven't test it yet but it should work.</del>
+
+Now it should work with `__signature__` magic.
 
 #### I have a suggestion for improvement and a pull req&mdash; ####
 
