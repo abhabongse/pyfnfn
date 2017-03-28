@@ -1,6 +1,6 @@
-# python-filewraps
+# Python Function Filename Wrapper
 
-`python-filewraps` is a small `python` decorator snippet which extends any `python` functions to accept **file names** as arguments in addition to **file-like objects**. It was originally written for personal day-to-day usage and it works on both `python2` as well as `python3` (only tested on `python2.7` and `python3.4`). It is released under [MIT License](LICENSE).
+Python Function Filename Wrapper (or `pyfnfn` for short) is a small `python` decorator snippet which extends any `python` functions to accept **file names** as arguments in addition to **file-like objects**. It was originally written for personal day-to-day usage and it works on both `python2` as well as `python3` (only tested on `python2.7` and `python3.4`). It is released under [MIT License](LICENSE).
 
 
 ## Getting started
