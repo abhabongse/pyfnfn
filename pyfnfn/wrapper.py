@@ -9,7 +9,7 @@ __all__ = ('FunctionFilenameWrapper', 'fnfnwrap')
 import functools
 import inspect
 import io
-from .util import check_open_kwargs, is_valid_filename, ReadWriteAttribute
+from .util import check_open_kwargs, is_valid_filename
 
 
 class FunctionFilenameWrapper(object):
@@ -30,12 +30,6 @@ class FunctionFilenameWrapper(object):
         open_kwargs: Dictionary of keyword arguments to `open()`
 
     """
-    # Using data descriptors for memory efficiency.
-    __original_fn = ReadWriteAttribute()
-    __is_generator = ReadWriteAttribute()
-    __filearg = ReadWriteAttribute()
-    __pos = ReadWriteAttribute()
-    __open_kwargs = ReadWriteAttribute()
 
     def __new__(cls, original_fn, filearg=0, open_kwargs=None):
         # Update attributes from original function

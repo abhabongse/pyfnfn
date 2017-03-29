@@ -4,7 +4,7 @@
 modifying the implementation of the function.
 
 """
-__all__ = ('is_valid_filename', 'check_open_kwargs', 'ReadWriteAttribute')
+__all__ = ('is_valid_filename', 'check_open_kwargs')
 
 import inspect
 import os
@@ -45,22 +45,3 @@ def check_open_kwargs(kwargs):
                 '{kwarg!r} is not a valid argument for built-in function open'
                 .format(kwarg=kwarg)
                 )
-
-
-class ReadWriteAttribute(object):
-    """A read/write data descriptor for object attributes solely to avoid
-    the population of `__dict__` attributes.
-    """
-    __slot__ = ('name', 'value')
-
-    def __get__(self, instance, owner):
-        if instance is None:
-            return self
-        else:
-            return self.value
-
-    def __set__(self, instance, value):
-        self.value = value
-
-    def __set_name__(self, owner, name):
-        self.name = name
