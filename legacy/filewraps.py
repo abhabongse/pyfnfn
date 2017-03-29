@@ -1,5 +1,5 @@
 # Author: Abhabongse Janthong <underneaththeunderneath@gmail.com>
-# More info at https://github.com/abhabongse/python3-filewraps
+# More info at https://github.com/abhabongse/pyfnfn
 
 import functools
 import inspect
