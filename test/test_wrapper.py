@@ -92,19 +92,38 @@ def read_numbers_generator(file_input):
 
 def construct_and_run(content, default_file, called_file=None):
     with open(default_file, mode='w') as fileobj:
+        ##########################################
         # HERE IS THE ACTUAL FUNCTION IN PRACTICE
+        ##########################################
         @fnfnwrap(filearg='file_output', mode='w')
         def write_hello(message, file_output=fileobj):
             print(message, file=file_output)
-        # END
+        ##########################################
+        # FUNCTION ENDS HERE
+        ##########################################
         if called_file:
             write_hello(content, called_file)
         else:
             write_hello(content)
 
+##################################################################
+##  6. It is possible to use decorator on the same function
+##  twice in the composition manner, as shown below. Notice that
+##  the function docstring is also preserved in the end.
+##################################################################
+
+@fnfnwrap(filearg=0)
+@fnfnwrap(filearg=1, mode='w')
+def copy_integers(source_file, dest_file):
+    """Copy the sequence of integers from one file to the other without
+    having to preserve the structure.
+    """
+    for line in source_file:
+        for token in line.split():
+            print(int(token), file=dest_file)
+
 # TODO: testing error handlings
 # TODO: testing with object, class, and static methods
-# TODO: testing with composite wraps
 # TODO: testing docstring
 
 ###################################
@@ -171,6 +190,29 @@ class FnFnWrapTestCase(unittest.TestCase):
             assertFileEqual(f1, '')
             assertFileEqual(f2, 'two')
             assertFileEqual(f3, 'three')
+
+    def test_composite_decorator(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            f1 = os.path.join(tempdir, '1.txt')
+            f2 = os.path.join(tempdir, '2.txt')
+            f3 = os.path.join(tempdir, '3.txt')
+            f4 = os.path.join(tempdir, '4.txt')
+
+            copy_integers(data_filename, f1)
+            self.assertEqual(read_numbers_default(f1), ref_data)
+
+            with open(data_filename) as data_file:
+                copy_integers(data_file, f2)
+            self.assertEqual(read_numbers_default(f2), ref_data)
+
+            with open(f3, mode='w') as f3_obj:
+                copy_integers(data_filename, f3_obj)
+            self.assertEqual(read_numbers_default(f3), ref_data)
+
+            with open(data_filename) as data_file, \
+                 open(f4, mode='w') as f4_obj:
+                copy_integers(data_file, f4_obj)
+            self.assertEqual(read_numbers_default(f4), ref_data)
 
 
 if __name__ == '__main__':
