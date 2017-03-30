@@ -38,7 +38,7 @@ class FunctionFilenameWrapper(object):
     def __init__(self, original_fn, filearg=0, open_kwargs=None):
         # Check if original function is callable
         if not callable(original_fn):
-            raise ValueError('expected a callable function')
+            raise TypeError('expected a callable function')
         # Check if open_kwargs is valid
         open_kwargs = open_kwargs or {}
         check_open_kwargs(open_kwargs)
@@ -59,10 +59,15 @@ class FunctionFilenameWrapper(object):
         elif filearg in kwargs:
             pos = None
         else:
-            raise NameError(
-                "{name!r} is not a valid argument for the function {fn!r}"
-                .format(name=filearg, fn=original_fn.__qualname__)
-                )
+            if isinstance(filearg, str):
+                raise NameError(
+                    "{name!r} is not a valid argument for the function {fn!r}"
+                    .format(name=filearg, fn=original_fn.__qualname__)
+                    )
+            else:
+                raise TypeError(
+                    "{name!r} has incorrect type".format(name=filearg)
+                    )
         # Keep track of data
         self.__original_fn = original_fn
         self.__is_generator =  inspect.isgeneratorfunction(original_fn)

@@ -95,6 +95,8 @@ def construct_and_run(content, default_file, called_file=None):
     with open(default_file, mode='w') as fileobj:
         ##########################################
         # HERE IS THE ACTUAL FUNCTION IN PRACTICE
+        # In fact, the default could have been
+        # standard input/output/error or so.
         ##########################################
         @fnfnwrap(filearg='file_output', mode='w')
         def write_hello(message, file_output=fileobj):
@@ -124,8 +126,13 @@ def copy_integers(source_file, dest_file):
         for token in line.split():
             print(int(token), file=dest_file)
 
-# TODO: testing error handlings
-# TODO: testing with object, class, and static methods
+
+##################################################################
+##  7. Exception during the function definition is shown in
+##  the construction of the `unittest.TestCase`.
+##################################################################
+
+pass
 
 ###################################
 ##  All test cases resides here  ##
@@ -222,6 +229,38 @@ class FnFnWrapTestCase(unittest.TestCase):
             having to preserve the structure.
             """)
         self.assertEqual(main_string, expected_string)
+
+    def test_exceptions(self):
+        with self.assertRaisesRegex(
+                TypeError, r'expected a callable function'):
+            fnfnwrap(1)
+        with self.assertRaisesRegex(
+                IndexError, r'argument list index out of range'):
+            @fnfnwrap
+            def dummy(): pass
+        with self.assertRaisesRegex(
+                IndexError, r'argument list index out of range'):
+            @fnfnwrap(filearg=3)
+            def dummy(a, b, c): pass
+        with self.assertRaisesRegex(
+                IndexError, r'argument list index out of range'):
+            @fnfnwrap(filearg=-2)
+            def dummy(x): pass
+        with self.assertRaisesRegex(
+                NameError, r'not a valid argument for the function'):
+            @fnfnwrap(filearg='z')
+            def dummy(a, b, c): pass
+        with self.assertRaisesRegex(
+                TypeError, r'has incorrect type'):
+            @fnfnwrap(filearg=b'a')
+            def dummy(a, b, c): pass
+        with self.assertRaisesRegex(
+                TypeError, r'not a valid argument for built-in function open'):
+            @fnfnwrap(filearg=0, modal=10)
+            def dummy(a, b, c): pass
+        with self.assertRaisesRegex(
+                TypeError, r'unrecognized type for filename or file object'):
+            read_numbers_default(10)
 
 
 if __name__ == '__main__':
