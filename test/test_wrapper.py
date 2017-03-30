@@ -9,6 +9,7 @@ __all__ = ()
 import io
 import os
 import tempfile
+import textwrap
 import unittest
 from pyfnfn import fnfnwrap
 
@@ -115,7 +116,8 @@ def construct_and_run(content, default_file, called_file=None):
 @fnfnwrap(filearg=0)
 @fnfnwrap(filearg=1, mode='w')
 def copy_integers(source_file, dest_file):
-    """Copy the sequence of integers from one file to the other without
+    """\
+    Copy the sequence of integers from one file to the other without
     having to preserve the structure.
     """
     for line in source_file:
@@ -124,7 +126,6 @@ def copy_integers(source_file, dest_file):
 
 # TODO: testing error handlings
 # TODO: testing with object, class, and static methods
-# TODO: testing docstring
 
 ###################################
 ##  All test cases resides here  ##
@@ -213,6 +214,14 @@ class FnFnWrapTestCase(unittest.TestCase):
                  open(f4, mode='w') as f4_obj:
                 copy_integers(data_file, f4_obj)
             self.assertEqual(read_numbers_default(f4), ref_data)
+
+    def test_docstring_preservation(self):
+        main_string = textwrap.dedent(copy_integers.__doc__)
+        expected_string = textwrap.dedent("""\
+            Copy the sequence of integers from one file to the other without
+            having to preserve the structure.
+            """)
+        self.assertEqual(main_string, expected_string)
 
 
 if __name__ == '__main__':
