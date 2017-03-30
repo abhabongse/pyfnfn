@@ -6,7 +6,9 @@ of how the usage of `@fnfnwrap` is intended.
 """
 __all__ = ()
 
+import io
 import os
+import tempfile
 import unittest
 from pyfnfn import fnfnwrap
 
@@ -78,9 +80,29 @@ def read_numbers_generator(file_input):
             count += 1
     return count
 
+##################################################################
+##  5. In order to open files are writing instead of reading,
+##  the decorator could specify the mode (among other
+##  arguments) to `open()`` function. Also, the example below
+##  demonstrates how filearg allows default values.
+##  Note: to make this function testable, we wrap the main
+##  function inside another function to init `default_file`
+##  so that it is defined right before when it is called.
+##################################################################
+
+def construct_and_run(content, default_file, called_file=None):
+    with open(default_file, mode='w') as fileobj:
+        # HERE IS THE ACTUAL FUNCTION IN PRACTICE
+        @fnfnwrap(filearg='file_output', mode='w')
+        def write_hello(message, file_output=fileobj):
+            print(message, file=file_output)
+        # END
+        if called_file:
+            write_hello(content, called_file)
+        else:
+            write_hello(content)
+
 # TODO: testing error handlings
-# TODO: testing writing files
-# TODO: testing with default argument values
 # TODO: testing with object, class, and static methods
 # TODO: testing with composite wraps
 # TODO: testing docstring
@@ -127,6 +149,28 @@ class FnFnWrapTestCase(unittest.TestCase):
         except StopIteration as e:
             self.assertEqual(e.value, len(ref_data))
 
+    def test_write_files(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            f1 = os.path.join(tempdir, 'one.txt')
+            f2 = os.path.join(tempdir, 'two.txt')
+            f3 = os.path.join(tempdir, 'three.txt')
+
+            def assertFileEqual(file_name, expected_content):
+                with open(file_name) as file_obj:
+                    self.assertEqual(file_obj.read().strip(), expected_content)
+
+            construct_and_run('one', f1)
+            assertFileEqual(f1, 'one')
+
+            construct_and_run('two', f1, f2)
+            assertFileEqual(f1, '')
+            assertFileEqual(f2, 'two')
+
+            with open(f3, 'w') as file_obj:
+                construct_and_run('three', f1, file_obj)
+            assertFileEqual(f1, '')
+            assertFileEqual(f2, 'two')
+            assertFileEqual(f3, 'three')
 
 
 if __name__ == '__main__':
