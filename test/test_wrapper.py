@@ -69,11 +69,21 @@ def read_numbers_keyword_only(*, data_input):
 ##  process that would prematurely closes the file.
 ###################################################################
 
+@fnfnwrap
+def read_numbers_generator(file_input):
+    count = 0
+    for line in file_input:
+        for token in line.split():
+            yield int(token)
+            count += 1
+    return count
+
 # TODO: testing error handlings
 # TODO: testing writing files
 # TODO: testing with default argument values
 # TODO: testing with object, class, and static methods
 # TODO: testing with composite wraps
+# TODO: testing docstring
 
 ###################################
 ##  All test cases resides here  ##
@@ -101,6 +111,23 @@ class FnFnWrapTestCase(unittest.TestCase):
         with open(data_filename) as data_file:
             self.assertEqual(read_numbers_keyword_only(data_input=data_file),
                              ref_data)
+
+    def test_generator(self):
+        try:
+            sequence = read_numbers_generator(data_filename)
+            for x, y in zip(sequence, ref_data):
+                self.assertEqual(x, y)
+        except StopIteration as e:
+            self.assertEqual(e.value, len(ref_data))
+        try:
+            with open(data_filename) as data_file:
+                sequence = read_numbers_generator(data_file)
+                for x, y in zip(sequence, ref_data):
+                    self.assertEqual(x, y)
+        except StopIteration as e:
+            self.assertEqual(e.value, len(ref_data))
+
+
 
 if __name__ == '__main__':
     unittest.main()
