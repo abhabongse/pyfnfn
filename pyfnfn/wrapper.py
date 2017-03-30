@@ -146,8 +146,6 @@ def fnfnwrap(original_fn=None, *, filearg=0, **open_kwargs):
 
     """
     if original_fn is None:
-        def decorator(original_fn):
-            return fnfnwrap(original_fn, filearg=filearg, **open_kwargs)
-        return decorator
+        return functools.partial(fnfnwrap, filearg=filearg, **open_kwargs)
     else:
         return FunctionFilenameWrapper(original_fn, filearg, open_kwargs)
