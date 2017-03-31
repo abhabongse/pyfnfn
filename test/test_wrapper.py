@@ -126,13 +126,29 @@ def copy_integers(source_file, dest_file):
         for token in line.split():
             print(int(token), file=dest_file)
 
-
 ##################################################################
 ##  7. Exception during the function definition is shown in
 ##  the construction of the `unittest.TestCase`.
 ##################################################################
 
 pass
+
+##################################################################
+##  8. This example demonstrates how the decorator could be
+##  used with method in classes.
+##################################################################
+
+class DataCollection(object):
+    def __init__(self, file_input):
+        self._populate(file_input)
+    @fnfnwrap(filearg='file_input')
+    def _populate(self, file_input):
+        self.data = [
+            int(token)
+            for line in file_input for token in line.split()
+            ]
+    def __iter__(self):
+        return iter(self.data)
 
 ###################################
 ##  All test cases resides here  ##
@@ -261,6 +277,13 @@ class FnFnWrapTestCase(unittest.TestCase):
         with self.assertRaisesRegex(
                 TypeError, r'unrecognized type for filename or file object'):
             read_numbers_default(10)
+
+    def test_function_methods(self):
+        data_v1 = DataCollection(data_filename)
+        self.assertEqual(list(data_v1), ref_data)
+        with open(data_filename) as data_file:
+            data_v2 = DataCollection(data_file)
+        self.assertEqual(list(data_v2), ref_data)
 
 
 if __name__ == '__main__':

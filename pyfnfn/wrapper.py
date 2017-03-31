@@ -137,6 +137,21 @@ class FunctionFilenameWrapper(object):
                 .format(filearg=self.__filearg)
                 )
 
+    def __get__(self, instance, owner):
+        # In order to make this callable work with bounded methods inside
+        # definition of classes, we make sure that this call is a non-data
+        # descriptor. This part is heavily inspired by the documentation of
+        # the package `wrapt` at
+        # https://wrapt.readthedocs.io/en/latest/wrappers.html#function-wrappers
+        get_method = self.__original_fn.__get__(instance, owner)
+        return BoundFunctionFilenameWrapper(get_method)
+
+
+class BoundFunctionFilenameWrapper(FunctionFilenameWrapper):
+    """The bounded method version of the class FunctionFilenameWrapper"""
+    def __get__(self, isinstance, owner):
+        return self
+
 
 def fnfnwrap(original_fn=None, *, filearg=0, **open_kwargs):
     """A function decorator that modifies a function to accept filenames in
