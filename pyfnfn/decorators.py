@@ -1,15 +1,18 @@
 # Author: Abhabongse Janthong <underneaththeunderneath@gmail.com>
 # More info at https://github.com/abhabongse/pyfnfn
-"""Modify a function to accept filenames in addition to file objects without
-modifying the implementation of the function.
-
+"""Given a function which expects a file object as one of the input
+arguments, the decorator in this module will modify the function input
+entry point so that it additionally accepts file names without modifying
+the implementation of the original function.
 """
+
 __all__ = ('FunctionFilenameWrapper', 'fnfnwrap')
 
 import functools
 import inspect
 import io
-from .util import check_open_kwargs, is_valid_filename
+
+from .utils import is_valid_filename, check_open_kwargs
 
 
 class FunctionFilenameWrapper(object):

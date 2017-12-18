@@ -10,7 +10,7 @@ import itertools
 import os
 import sys
 import unittest
-from pyfnfn.util import is_valid_filename, check_open_kwargs
+from pyfnfn.utils import is_valid_filename, check_open_kwargs
 
 # Obtain the path for data.txt within the same directory as this code.
 this_dir = os.path.dirname(os.path.abspath(__file__))
