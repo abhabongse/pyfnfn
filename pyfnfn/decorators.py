@@ -15,6 +15,26 @@ import io
 from .utils import is_valid_filename, check_open_kwargs
 
 
+def fnfnwrap(original_fn=None, *, filearg=0, **open_kwargs):
+    """A function decorator that modifies a function definition to accept
+    file name in additional to already-accepting file objects without
+    actually modifying the implementation of the original function.
+
+    Args:
+        original_fn: Main function being wrapped
+        filearg: Either the index of positional argument or the name of the
+            argument itself, which accepts a file as input
+        **open_kwargs: Arguments for built-in function `open()`. See the
+            documentation for `open()` to see the list of input arguments.
+    Returns:
+        The same function with file open mechanics.
+    """
+    if original_fn is None:
+        return functools.partial(fnfnwrap, filearg=filearg, **open_kwargs)
+    else:
+        return FunctionFilenameWrapper(original_fn, filearg, open_kwargs)
+
+
 class FunctionFilenameWrapper(object):
     """A callable wrapper of a function accepting files as arguments.
 
@@ -154,24 +174,3 @@ class BoundFunctionFilenameWrapper(FunctionFilenameWrapper):
     """The bounded method version of the class FunctionFilenameWrapper"""
     def __get__(self, isinstance, owner):
         return self
-
-
-def fnfnwrap(original_fn=None, *, filearg=0, **open_kwargs):
-    """A function decorator that modifies a function to accept filenames in
-    addition to file objects without modifying the implementation of the
-    function.
-
-    Args:
-        original_fn: Main function being wrapped
-        filearg: Either the index of positional argument or the name of the
-            argument itself, which accepts a file as input
-        **open_kwargs: Arguments for built-in function `open()`. See the
-            documentation for `open()` to see the list of input arguments.
-    Returns:
-        The same function with file open mechanics.
-
-    """
-    if original_fn is None:
-        return functools.partial(fnfnwrap, filearg=filearg, **open_kwargs)
-    else:
-        return FunctionFilenameWrapper(original_fn, filearg, open_kwargs)
