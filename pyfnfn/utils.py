@@ -1,4 +1,4 @@
-# Author: Abhabongse Janthong <underneaththeunderneath@gmail.com>
+# Author: Abhabongse Janthong
 # More info at https://github.com/abhabongse/pyfnfn
 """Helper functions."""
 

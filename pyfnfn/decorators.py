@@ -1,4 +1,4 @@
-# Author: Abhabongse Janthong <underneaththeunderneath@gmail.com>
+# Author: Abhabongse Janthong
 # More info at https://github.com/abhabongse/pyfnfn
 """Given a function which expects a file object as one of the input
 arguments, the decorator in this module will modify the function input
@@ -14,6 +14,9 @@ import io
 
 from .utils import is_valid_filename, check_open_kwargs
 
+############################
+##  Defining a decorator  ##
+############################
 
 def fnfnwrap(original_fn=None, *, filearg=0, **open_kwargs):
     """A function decorator that modifies a function definition to accept
@@ -34,6 +37,9 @@ def fnfnwrap(original_fn=None, *, filearg=0, **open_kwargs):
     else:
         return FunctionFilenameWrapper(original_fn, filearg, open_kwargs)
 
+##############################
+##  Wrapper implementation  ##
+##############################
 
 class FunctionFilenameWrapper(object):
     """A callable wrapper of a function accepting files as arguments.

@@ -1,4 +1,4 @@
-# Author: Abhabongse Janthong <underneaththeunderneath@gmail.com>
+# Author: Abhabongse Janthong
 # More info at https://github.com/abhabongse/pyfnfn
 """Given a function which expects a file object as one of the input
 arguments, the decorator in this module will modify the function input

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Author: Abhabongse Janthong <underneaththeunderneath@gmail.com>
+# Author: Abhabongse Janthong
 # More info at https://github.com/abhabongse/pyfnfn
 """Test suite for Python Function Filename Wrapper. It also serves as examples
 of how the usage of `@fnfnwrap` is intended.
