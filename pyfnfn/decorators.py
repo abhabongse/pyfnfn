@@ -8,6 +8,7 @@ the implementation of the original function.
 
 __all__ = ('FunctionFilenameWrapper', 'fnfnwrap')
 
+import collections
 import functools
 import inspect
 import io
@@ -19,16 +20,20 @@ from .utils import is_valid_filename, check_open_kwargs
 ############################
 
 def fnfnwrap(original_fn=None, *, filearg=0, **open_kwargs):
-    """A function decorator that modifies a function definition to accept
-    file name in additional to already-accepting file objects without
-    actually modifying the implementation of the original function.
+    """A function decorator which modifies a the function input entry
+    point so that it additionally accepts file names without modifying
+    the implementation of the original function.
 
     Args:
         original_fn: Main function being wrapped
-        filearg: Either the index of positional argument or the name of the
-            argument itself, which accepts a file as input
-        **open_kwargs: Arguments for built-in function `open()`. See the
-            documentation for `open()` to see the list of input arguments.
+        filearg: Input argument of the function which accepts file-like
+            objects, which can be given as an index of the positional
+            argument (as integer) or the name of of the argument itself
+            (as string)
+        **open_kwargs: Keyword-only arguments for built-in function
+            `open()` to be passed through this function when a new file
+            is opened. Refer to the document of built-in functions for
+            explanation of input arguments to the function `open()`.
     Returns:
         The same function with file open mechanics.
     """
@@ -36,6 +41,20 @@ def fnfnwrap(original_fn=None, *, filearg=0, **open_kwargs):
         return functools.partial(fnfnwrap, filearg=filearg, **open_kwargs)
     else:
         return FunctionFilenameWrapper(original_fn, filearg, open_kwargs)
+
+# Add signature to the above function using signature from open()
+_original_parameters = list(
+    inspect.signature(fnfnwrap).parameters.values()
+    )[:-1]
+_additional_parameters = list(
+    inspect.Parameter(
+        param.name, inspect.Parameter.KEYWORD_ONLY, default=param.default
+        )
+    for param in inspect.signature(open).parameters.values()
+    )[1:]
+fnfnwrap.__signature__ = inspect.Signature(
+    _original_parameters + _additional_parameters
+    )
 
 ##############################
 ##  Wrapper implementation  ##
