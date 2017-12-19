@@ -61,22 +61,24 @@ fnfnwrap.__signature__ = inspect.Signature(
 ##############################
 
 class FunctionFilenameWrapper(object):
-    """A callable wrapper of a function accepting files as arguments.
+    """Constructs a callable wrapper over a function accepting files as
+    arguments.
 
-    Given an original function `original_fn`, the name or the index of the
-    file argument `filearg`, and a dictionary of keyword-only arguments
-    `open_kwargs` to built-in function `open()`, this class wraps over the
-    original function and will automatically open files when filename strings
-    (provided as `str`, `bytes`, or `os.PathLike`) are given instead of file
-    objects.
+    Given (1) an original function `original_fn`, (2) the name or the
+    index of the file argument `filearg`, and (3) a dictionary of
+    keyword-only arguments `open_kwargs` as arguments to be passed
+    to built-in function `open()`, this class wraps over the
+    `original_fn` and will automatically open file when file name
+    strings (provided as `str`, `bytes`, or `os.PathLike`) are given
+    as input arguments instead of file objects.
 
-    Private Attributes (preceding with double underscores):
-        original_fn: Main function being wrapped
-        is_generator: Boolean whether `original_fn` is a generator function
-        filearg: Name of function argument accepting files
-        pos: Index of positional `filearg` argument, or None if keyword-only
-        open_kwargs: Dictionary of keyword arguments to `open()`
-
+    Attributes:
+        __wrapped__: Original function being wrapped
+        is_generator: Boolean indicating whether `__wrapped__` is a generator
+        filearg: Name of function input argument accepting file objects
+        pos: Index of positional `filearg` argument (`None` if keyword-only)
+        open_kwargs: Dictionary of keyword arguments to built-in function
+            `open()`
     """
 
     def __new__(cls, original_fn, filearg=0, open_kwargs=None):
