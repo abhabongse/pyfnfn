@@ -13,7 +13,7 @@ import functools
 import inspect
 import io
 
-from .utils import is_valid_filename, check_open_kwargs
+from .utils import is_valid_filename, validate_open_kwargs
 
 ############################
 ##  Defining a decorator  ##
@@ -82,16 +82,18 @@ class FunctionFilenameWrapper(object):
     """
 
     def __new__(cls, original_fn, filearg=0, open_kwargs=None):
-        # Update attributes from original function
         return functools.update_wrapper(super().__new__(cls), original_fn)
 
     def __init__(self, original_fn, filearg=0, open_kwargs=None):
+
         # Check if original function is callable
         if not callable(original_fn):
             raise TypeError('expected a callable function')
+
         # Check if open_kwargs is valid
         open_kwargs = open_kwargs or {}
-        check_open_kwargs(open_kwargs)
+        validate_open_kwargs(open_kwargs)
+
         # Extract argument specs from original function
         spec = inspect.getfullargspec(original_fn)
         args = spec.args; kwargs = spec.kwonlyargs

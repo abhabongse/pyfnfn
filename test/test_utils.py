@@ -10,7 +10,7 @@ import itertools
 import os
 import sys
 import unittest
-from pyfnfn.utils import is_valid_filename, check_open_kwargs
+from pyfnfn.utils import is_valid_filename, validate_open_kwargs
 
 # Obtain the path for data.txt within the same directory as this code.
 this_dir = os.path.dirname(os.path.abspath(__file__))
@@ -50,9 +50,9 @@ class ValidFilenameTestCase(unittest.TestCase):
         self.assertFalse(is_valid_filename(lambda: None))
 
 
-#########################################################
-##  All test cases for check_open_kwargs resides here  ##
-#########################################################
+############################################################
+##  All test cases for validate_open_kwargs resides here  ##
+############################################################
 
 class ValidOpenKeywordArgumentsTestCase(unittest.TestCase):
 
@@ -67,16 +67,16 @@ class ValidOpenKeywordArgumentsTestCase(unittest.TestCase):
                 )
             for subset_args in powerset_args:
                 open_kwargs = { arg: None for arg in subset_args }
-                check_open_kwargs(open_kwargs)
+                validate_open_kwargs(open_kwargs)
         except:
             self.fail('Exception raised unexpectedly!')
 
     def test_invalid_open_arguments(self):
         with self.assertRaises(TypeError):
-            check_open_kwargs({'modal': None})
+            validate_open_kwargs({'modal': None})
         with self.assertRaises(TypeError):
             valid_args = ('mode', 'buffering', 'encoding', 'errors',
                           'newline', 'closefd', 'opener')
             open_kwargs = { arg: None for arg in valid_args }
             open_kwargs['wrong'] = None
-            check_open_kwargs(open_kwargs)
+            validate_open_kwargs(open_kwargs)

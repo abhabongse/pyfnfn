@@ -2,7 +2,7 @@
 # More info at https://github.com/abhabongse/pyfnfn
 """Helper functions."""
 
-__all__ = ('is_valid_filename', 'check_open_kwargs')
+__all__ = ('is_valid_filename', 'validate_open_kwargs')
 
 import inspect
 import os
@@ -25,7 +25,7 @@ def is_valid_filename(filename):
         return False
 
 
-def check_open_kwargs(kwargs):
+def validate_open_kwargs(kwargs):
     """Check if keywork arguments dictionary are suitable for built-in
     `open()` function.
 
