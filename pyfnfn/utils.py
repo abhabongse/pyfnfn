@@ -36,7 +36,7 @@ def validate_open_kwargs(kwargs):
     Raises:
         TypeError if some keywords are not valid
     """
-    open_spec = inspect.getfullargspec(open).args[1:]
+    open_spec = list(inspect.signature(open).parameters)[1:]
     for kwarg in kwargs:
         if kwarg not in open_spec:
             raise TypeError(
