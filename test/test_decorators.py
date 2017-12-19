@@ -275,7 +275,7 @@ class FnFnWrapTestCase(unittest.TestCase):
             @fnfnwrap(filearg=0, modal=10)
             def dummy(a, b, c): pass
         with self.assertRaisesRegex(
-                TypeError, r'unrecognized type for filename or file object'):
+                TypeError, r"'file_input' must have been file name or file-like object"):
             read_numbers_default(10)
 
     def test_function_methods(self):

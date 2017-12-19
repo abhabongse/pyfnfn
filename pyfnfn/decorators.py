@@ -86,107 +86,107 @@ class FunctionFilenameWrapper(object):
 
     def __init__(self, original_fn, filearg=0, open_kwargs=None):
 
-        # Check if original function is callable
+        # Proactively check if original function is callable
         if not callable(original_fn):
             raise TypeError('expected a callable function')
 
-        # Check if open_kwargs is valid
+        # Proactively check if open_kwargs is valid
         open_kwargs = open_kwargs or {}
         validate_open_kwargs(open_kwargs)
 
         # Extract argument specs from original function
-        spec = inspect.getfullargspec(original_fn)
-        args = spec.args; kwargs = spec.kwonlyargs
+        sig = inspect.signature(original_fn).parameters
+        args = [
+            parameter.name
+            for parameter in sig.values()
+            if parameter.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+            ]
+        kwargs = [
+            parameter.name
+            for parameter in sig.values()
+            if parameter.kind == inspect.Parameter.KEYWORD_ONLY
+            ]
+
         # Determine if positional filearg is within bounds
         try:
             filearg = args[filearg]  # obtain name of argument
         except TypeError:
             pass  # re-check later whether it is a valid name
         except IndexError as e:
-            e.args = ("argument list index out of range",)
-            raise
-        # Check if filearg is actually valid
+            raise IndexError("argument list index out of range") from e
+
+        # Check if filearg name string is actually valid
         if filearg in args:
-            pos = args.index(filearg)
+            pos = args.index(filearg)  # always non negative
         elif filearg in kwargs:
             pos = None
+        elif isinstance(filearg, str):
+            raise NameError(
+                "{name!r} is not a valid argument for the function {fn!r}"
+                .format(name=filearg, fn=original_fn.__qualname__)
+                )
         else:
-            if isinstance(filearg, str):
-                raise NameError(
-                    "{name!r} is not a valid argument for the function {fn!r}"
-                    .format(name=filearg, fn=original_fn.__qualname__)
-                    )
-            else:
-                raise TypeError(
-                    "{name!r} has incorrect type".format(name=filearg)
-                    )
+            raise TypeError(
+                "{name!r} has incorrect type".format(name=filearg)
+                )
+
         # Keep track of data
-        self.__original_fn = original_fn
-        self.__is_generator =  inspect.isgeneratorfunction(original_fn)
-        self.__filearg = filearg
-        self.__pos = pos
-        self.__open_kwargs = open_kwargs
-        # Magic for compositable wrapper for multiple filename arguments
-        self.__signature__ = inspect.signature(original_fn)
+        self.__wrapped__ = original_fn
+        self.is_generator = inspect.isgeneratorfunction(original_fn)
+        self.filearg = filearg
+        self.pos = pos
+        self.open_kwargs = open_kwargs
 
     def __call__(self, *args, **kwargs):
-        """Invoke `original_fn` and open files as necessary.
-
-        Args:
-            args: List of given positional arguments
-            kwargs: Dictionary of given keyword arguments
-        Returns:
-            Result from the invoked original function
-
-        """
-        args = list(args)  # convert from non-mutable tuple
-        if self.__pos is not None and self.__pos < len(args):
+        args = list(args)  # convert from non-mutable sequence
+        if self.pos is not None and self.pos < len(args):
             # Open files for positional argument
-            return self.__invoke(args, kwargs, args, self.__pos)
-        elif self.__filearg in kwargs:
+            return self._invoke(args, kwargs, args, self.pos)
+        elif self.filearg in kwargs:
             # Open files for keyword arguments
-            return self.__invoke(args, kwargs, kwargs, self.__filearg)
+            return self._invoke(args, kwargs, kwargs, self.filearg)
         else:
-            # Open files not necessary
-            return self.__original_fn(*args, **kwargs)
+            # Open files not necessary (fallback to arg default values)
+            return self.__wrapped__(*args, **kwargs)
 
-    def __invoke(self, args, kwargs, store, key):
-        """Open files given at `store[key]` before invoke actual function.
+    def _invoke(self, args, kwargs, store, key):
+        """Open files given at `store[key]` before invoking the original
+        function.
 
         Args:
             args: List of given positional arguments
             kwargs: Dictionary of given keyword arguments
-            store: Either `args` or `kwargs` containing filename argument
-            key: Lookup key for filename argument in `store`
+            store: A duplicate of either `args` or `kwargs` containing
+                file name argument
+            key: Lookup key for file name argument in `store`
         Returns:
-            Result from the invoked original function
-
+            Result of the original function being invoked
         """
         file_input = store[key]
         if isinstance(file_input, io.IOBase):
-            # Input argument is already a file object
-            return self.__original_fn(*args, **kwargs)
+            # Input argument is already a file object: do nothing
+            return self.__wrapped__(*args, **kwargs)
         elif is_valid_filename(file_input):
-            # Input argument is a filename; need to open
-            if self.__is_generator:
+            # Input argument is a filename: need to open
+            if self.is_generator:
                 # File needs to be opened inside a generator if the original
                 # function is also a generator. A wrap is needed to maintain
                 # the attributes information of the generator objects.
-                @functools.wraps(self.__original_fn)
+                @functools.wraps(self.__wrapped__)
                 def generator_wrapper():
-                    with open(file_input, **self.__open_kwargs) as fileobj:
-                        store[key] = fileobj
-                        return (yield from self.__original_fn(*args, **kwargs))
+                    with open(file_input, **self.open_kwargs) as fileobj:
+                        store[key] = fileobj  # replace original arguments
+                        return (yield from self.__wrapped__(*args, **kwargs))
                 return generator_wrapper()
             else:
                 # Open the file normally
-                with open(file_input, **self.__open_kwargs) as fileobj:
-                    store[key] = fileobj
-                    return self.__original_fn(*args, **kwargs)
+                with open(file_input, **self.open_kwargs) as fileobj:
+                    store[key] = fileobj  # replace original arguments
+                    return self.__wrapped__(*args, **kwargs)
         else:
             raise TypeError(
-                'unrecognized type for filename or file object for {filearg!r}'
-                .format(filearg=self.__filearg)
+                '{filearg!r} must have been file name or file-like object'
+                .format(filearg=self.filearg)
                 )
 
     def __get__(self, instance, owner):
@@ -195,7 +195,7 @@ class FunctionFilenameWrapper(object):
         # descriptor. This part is heavily inspired by the documentation of
         # the package `wrapt` at
         # https://wrapt.readthedocs.io/en/latest/wrappers.html#function-wrappers
-        get_method = self.__original_fn.__get__(instance, owner)
+        get_method = self.__wrapped__.__get__(instance, owner)
         return BoundFunctionFilenameWrapper(get_method)
 
 
