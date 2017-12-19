@@ -74,6 +74,7 @@ class FunctionFilenameWrapper(object):
 
     Attributes:
         __wrapped__: Original function being wrapped
+            (set by `functools.update_wrapper`)
         is_generator: Boolean indicating whether `__wrapped__` is a generator
         filearg: Name of function input argument accepting file objects
         pos: Index of positional `filearg` argument (`None` if keyword-only)
@@ -82,6 +83,8 @@ class FunctionFilenameWrapper(object):
     """
 
     def __new__(cls, original_fn, filearg=0, open_kwargs=None):
+        # The following line of code already set:
+        # self.__wrapped__ = original_fn
         return functools.update_wrapper(super().__new__(cls), original_fn)
 
     def __init__(self, original_fn, filearg=0, open_kwargs=None):
@@ -131,7 +134,6 @@ class FunctionFilenameWrapper(object):
                 )
 
         # Keep track of data
-        self.__wrapped__ = original_fn
         self.is_generator = inspect.isgeneratorfunction(original_fn)
         self.filearg = filearg
         self.pos = pos
