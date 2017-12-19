@@ -25,11 +25,3 @@ To run the test, execute the following command:
 Also, in particular, the test file
 [test/test_wrapper.py](test/test_wrapper.py)
 contains a few examples of how `@fnfnwrap` can be utilized.
-
-## Important Note
-
-In the future, I might actually adopt the very cool package called
-[`wrapt` by Graham Dumpleton](https://github.com/GrahamDumpleton/wrapt)
-instead of writing code from scratch. The code could have ended up much
-simpler, and **it could be that everything in this package would break
-in future versions**.
